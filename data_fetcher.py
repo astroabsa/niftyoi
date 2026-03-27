@@ -1,27 +1,29 @@
-# data_fetcher.py
-
 import requests
 import pandas as pd
-from config import *
+import streamlit as st
 
 def fetch_option_chain():
-    url = f"https://api.upstox.com/v2/option/chain"
+    url = "https://api.upstox.com/v2/option/chain"
 
     headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}"
+        "Authorization": f"Bearer {st.secrets['ACCESS_TOKEN']}"
     }
 
     params = {
-        "symbol": SYMBOL,
-        "expiry_date": EXPIRY
+        "symbol": st.secrets["SYMBOL"],
+        "expiry_date": st.secrets["EXPIRY"]
     }
 
     response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code != 200:
+        return pd.DataFrame()
+
     data = response.json()
 
     records = []
 
-    for item in data['data']:
+    for item in data.get('data', []):
         records.append({
             "strike": item['strike_price'],
             "call_oi": item['call_options']['oi'],
