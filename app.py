@@ -1,5 +1,3 @@
-# app.py
-
 import streamlit as st
 from data_fetcher import fetch_option_chain
 from pcr_engine import calculate_pcr
@@ -9,6 +7,10 @@ st.set_page_config(layout="wide")
 st.title("🔥 Real-Time ΔPCR Dashboard")
 
 df = fetch_option_chain()
+
+if df.empty:
+    st.error("⚠️ Failed to fetch data. Check API / Token.")
+    st.stop()
 
 pcr, delta_pcr = calculate_pcr(df)
 signal = generate_signal(pcr, delta_pcr)
@@ -22,6 +24,7 @@ col3.metric("Market Signal", signal)
 st.subheader("Option Chain Snapshot")
 st.dataframe(df)
 
+# Top build-up
 st.subheader("Top OI Build-Up")
 
 top_calls = df.sort_values("call_oi_change", ascending=False).head(5)
