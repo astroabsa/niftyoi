@@ -3,33 +3,38 @@ import pandas as pd
 import streamlit as st
 
 def fetch_option_chain():
-    url = "https://api.upstox.com/v2/option/chain"
+    url = "https://api.upstox.com/v2/market-quote/option-greek"
 
     headers = {
-        "Authorization": f"Bearer {st.secrets['ACCESS_TOKEN']}"
+        "Authorization": f"Bearer {st.secrets['ACCESS_TOKEN']}",
+        "Accept": "application/json"
     }
 
+    # Example instruments (you NEED to generate these dynamically later)
+    instruments = [
+        "NSE_FO|NIFTY24MAR22000CE",
+        "NSE_FO|NIFTY24MAR22000PE",
+    ]
+
     params = {
-        "symbol": st.secrets["SYMBOL"],
-        "expiry_date": st.secrets["EXPIRY"]
+        "instrument_key": ",".join(instruments)
     }
 
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code != 200:
+        st.write(response.text)  # DEBUG
         return pd.DataFrame()
 
     data = response.json()
 
     records = []
 
-    for item in data.get('data', []):
+    for key, value in data.get("data", {}).items():
         records.append({
-            "strike": item['strike_price'],
-            "call_oi": item['call_options']['oi'],
-            "put_oi": item['put_options']['oi'],
-            "call_oi_change": item['call_options']['oi_change'],
-            "put_oi_change": item['put_options']['oi_change']
+            "instrument": key,
+            "oi": value.get("oi", 0),
+            "oi_change": value.get("oi_day_change", 0)
         })
 
     return pd.DataFrame(records)
