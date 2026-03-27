@@ -2,3 +2,5 @@ streamlit
 pandas
 requests
 numpy
+plotly 
+upstox-python-sdk
